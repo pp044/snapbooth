@@ -1,0 +1,21 @@
+{
+  "name": "wepicts",
+  "version": "1.0.0",
+  "description": "Real-time online photo booth with freemium token model",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "bootstrap": "^6.0.0-alpha.1",
+    "connect-mongo": "^5.1.0",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "express-session": "^1.18.0",
+    "mongodb": "^6.8.0",
+    "socket.io": "^4.7.5"
+  }
+}

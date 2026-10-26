@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SnapBooth – Online Photo Booth</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header id="topbar" class="hidden">
+    <div class="brand">📸 SnapBooth</div>
+    <div class="top-right">
+      <span class="pill" id="pillUser"></span>
+      <span class="pill">🪙 <b id="pillTokens">0</b> tokens</span>
+      <span class="pill">🎁 <b id="pillFree">0</b> free left</span>
+      <button class="btn small accent" id="btnBuy">Buy Tokens</button>
+      <button class="btn small ghost" id="btnLogout">Log out</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- AUTH -->
+    <section id="screen-auth" class="screen">
+      <div class="card narrow">
+        <h1>📸 SnapBooth</h1>
+        <p class="muted">Log in or create an account to start. New accounts get 2 free sessions.</p>
+        <input id="authUser" type="text" placeholder="Username" autocomplete="username">
+        <input id="authPass" type="password" placeholder="Password" autocomplete="current-password">
+        <div class="row">
+          <button class="btn primary" id="btnLogin">Log in</button>
+          <button class="btn" id="btnRegister">Create account</button>
+        </div>
+        <p class="error" id="authMsg"></p>
+      </div>
+    </section>
+
+    <!-- LANDING -->
+    <section id="screen-landing" class="screen">
+      <h2>Choose your booth</h2>
+      <div id="blocked" class="banner hidden">
+        You have 0 tokens and have used all free sessions.
+        <button class="btn small accent" id="btnBlockedBuy">Buy Tokens</button>
+      </div>
+      <div class="grid2">
+        <button class="choice" id="btnSingle">
+          <span class="icon icon-single"></span>
+          <b>Single Photo</b>
+          <small>Just you, solo shots</small>
+        </button>
+        <button class="choice" id="btnGroup">
+          <span class="icon icon-group"></span>
+          <b>Group Photo</b>
+          <small>Shoot together in a shared room</small>
+        </button>
+
+      </div>
+    </section>
+
+    <!-- GROUP ROOM -->
+    <section id="screen-group" class="screen">
+      <div class="card narrow">
+        <h2>Group Photo</h2>
+        <button class="btn primary" id="btnCreateRoom">Create a Group Code</button>
+        <div class="divider">or</div>
+        <input id="joinCode" type="text" maxlength="8" placeholder="Enter group code" style="text-transform:uppercase">
+        <button class="btn" id="btnJoinRoom">Join Group</button>
+        <button class="btn ghost" id="btnGroupBack">← Back</button>
+        <p class="error" id="groupMsg"></p>
+      </div>
+    </section>
+
+    <!-- LAYOUT -->
+    <section id="screen-layout" class="screen">
+      <h2>Choose a layout</h2>
+      <div class="grid2">
+        <button class="choice layout-card" data-layout="3">
+          <div class="mini mini3"><i></i><i></i><i></i></div><b>3 Photos</b><small>Classic vertical strip</small>
+        </button>
+        <button class="choice layout-card" data-layout="6">
+          <div class="mini mini6"><i></i><i></i><i></i><i></i><i></i><i></i></div><b>6 Photos</b><small>2 × 3 grid</small>
+        </button>
+      </div>
+      <button class="btn ghost" id="btnLayoutBack">← Back</button>
+    </section>
+
+    <!-- BOOTH -->
+    <section id="screen-booth" class="screen">
+      <div class="booth-head">
+        <div><b id="boothInfo"></b></div>
+        <button class="btn small ghost" id="btnLeave">Leave</button>
+      </div>
+      <div id="roomPanel" class="room-panel hidden">
+        <div>Group code: <span class="code" id="roomCode"></span></div>
+        <div id="members" class="members"></div>
+        <div class="muted" id="roomWait"></div>
+      </div>
+      <div class="stage">
+        <div id="videoGrid" class="video-grid" data-count="1">
+          <div class="tile"><video id="localVideo" autoplay muted playsinline class="mirror"></video><span class="tag">You</span></div>
+        </div>
+        <div id="countdown" class="countdown hidden"></div>
+        <div id="flash" class="flash"></div>
+      </div>
+      <div id="thumbs" class="thumbs"></div>
+      <button class="btn primary big" id="btnStart">Start</button>
+    </section>
+
+    <!-- FRAMES -->
+    <section id="screen-frames" class="screen">
+      <h2>Pick a frame</h2>
+      <div class="frames-wrap">
+        <div id="frameList" class="frame-list"></div>
+        <div class="preview">
+          <canvas id="previewCanvas"></canvas>
+          <p class="muted" id="costNote"></p>
+          <div class="row">
+            <button class="btn primary" id="btnDownload">⬇ Download</button>
+            <button class="btn" id="btnSave">💾 Save</button>
+          </div>
+          <p id="saveLink" class="muted"></p>
+          <div class="row">
+            <button class="btn ghost" id="btnRetake">↻ Retake</button>
+            <button class="btn ghost" id="btnHome">🏠 Home</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- BUY MODAL -->
+  <div id="modal" class="modal hidden">
+    <div class="card narrow buy-card">
+      <h2>Beli Token</h2>
+      <p class="muted">Harga dasar Rp 5.000 / token. Makin banyak, makin hemat! Frame Premium memakai 1 token.</p>
+      <div id="packList" class="packs"></div>
+      <label class="muted" for="qtyInput">Atau masukkan jumlah kustom (1–100)</label>
+      <input id="qtyInput" type="number" inputmode="numeric" min="1" max="100" step="1" value="1">
+      <div id="priceSummary" class="summary"></div>
+      <button class="btn accent big-pay" id="btnPay">Bayar</button>
+      <button class="btn hidden" id="btnMockPay">Simulasikan pembayaran (mode demo)</button>
+      <p id="payStatus" class="muted"></p>
+      <button class="btn ghost" id="btnCloseModal">Tutup</button>
+    </div>
+  </div>
+  <div id="toast" class="toast"></div>
+ 
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
