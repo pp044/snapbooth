@@ -402,6 +402,8 @@ app.get('/', (req, res) => {
  
   <script src="/socket.io/socket.io.js"></script>
   <script src="app.js"></script>
+  <link rel="stylesheet" href="/css/style.css">
+<script src="/js/app.js"></script>
 </body>
 </html>
   `);
