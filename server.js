@@ -943,6 +943,21 @@ process.on('SIGTERM', () => shutdown('SIGTERM'));
 // ============================================================
 // Boot
 // ============================================================
+const express = require("express");
+const path = require("path");
+
+
+const publicPath = path.join(__dirname, "public");
+
+app.use(express.static(publicPath));
+
+app.get("/", (req, res) => {
+  res.sendFile(path.join(publicPath, "index.html"));
+});
+
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`Server running on port ${PORT}`);
+});
 (async () => {
   try {
     await connectDatabase();
@@ -954,3 +969,4 @@ process.on('SIGTERM', () => shutdown('SIGTERM'));
     console.log(`SnapBooth running at http://localhost:${PORT} (mode=${PAYMENT_MODE})`);
   });
 })();
+
