@@ -3,7 +3,7 @@ try { require('dotenv').config(); } catch (e) { /* dotenv opsional */ }
 const express = require('express');
 const session = require('express-session');
 const http = require('http');
-const path = require('path');
+const path = require('path'); // <-- Cukup dideklarasikan SEKALI di sini
 const fs = require('fs');
 const crypto = require('crypto');
 const { Server } = require('socket.io');
@@ -11,7 +11,7 @@ const { MongoClient } = require('mongodb');
 const MongoStore = require('connect-mongo');
 
 // ============================================================
-// KONFIGURASI (semua lewat env di production)
+// KONFIGURASI
 // ============================================================
 const IS_PROD = process.env.NODE_ENV === 'production';
 const PORT = process.env.PORT || 3000;
@@ -36,7 +36,7 @@ const SAVE_DIR = process.env.SAVE_DIR
   : path.join(__dirname, 'saved');
 fs.mkdirSync(SAVE_DIR, { recursive: true });
 
-// ---------- Catalog (frames drawn client-side by id) ----------
+// ---------- Catalog ----------
 const FRAMES = [
   { id: 'classic', name: 'Classic White', premium: false },
   { id: 'noir',    name: 'Noir',          premium: false },
@@ -45,7 +45,7 @@ const FRAMES = [
   { id: 'koran',   name: 'Koran Retro',   premium: false },
 ];
 
-// ---------- Harga token (Rupiah) ----------
+// ---------- Harga token ----------
 const BASE_TOKEN_PRICE = 5000;
 const MAX_TOKEN_QTY = 100;
 const PRICE_TIERS = [
@@ -101,7 +101,7 @@ if (IS_PROD && PAYMENT_MODE === 'mock') {
 const users = new Map();
 const usersById = new Map();
 const orders = new Map();
-const orderTimestamps = new Map(); // untuk TTL
+const orderTimestamps = new Map();
 const ORDER_TTL_MS = 24 * 3600 * 1000;
 
 // ---------- MongoDB ----------
@@ -168,7 +168,6 @@ async function connectDatabase() {
     users.set(u.username.toLowerCase(), u);
     usersById.set(u.id, u);
   }
-  // Load order belum credited, plus yang baru (< TTL) untuk verifikasi
   const cutoff = new Date(Date.now() - ORDER_TTL_MS);
   for (const d of await ordersCol.find({ updatedAt: { $gte: cutoff } }).toArray()) {
     orders.set(d._id, {
@@ -208,7 +207,7 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: false } });
 
-app.set('trust proxy', 1); // di balik nginx/heroku/railway
+app.set('trust proxy', 1);
 
 const sessionMiddleware = session({
   name: 'snapbooth.sid',
@@ -235,14 +234,15 @@ const sessionMiddleware = session({
 app.use(express.json({ limit: '25mb' }));
 app.use(sessionMiddleware);
 io.engine.use(sessionMiddleware);
-const path = require('path'); 
+
+// Serve static files (INI YANG TADI ERROR KARENA PATH DOUBLE)
 app.use(express.static(path.join(__dirname, 'public')));
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// ---------- Rate limiter (sederhana, in-memory) ----------
-const rateBuckets = new Map(); // key -> { count, resetAt }
+// ---------- Rate limiter ----------
+const rateBuckets = new Map();
 function rateLimit(key, max, windowMs) {
   const now = Date.now();
   const b = rateBuckets.get(key);
@@ -315,7 +315,7 @@ app.post('/api/logout', (req, res) => req.session.destroy(() => res.json({ ok: t
 app.get('/api/me', requireAuth, (req, res) => res.json({ user: publicUser(req.user) }));
 app.get('/api/frames', requireAuth, (req, res) => res.json({ frames: FRAMES }));
 
-// ---------- Health check (untuk load balancer) ----------
+// ---------- Health check ----------
 app.get('/api/health', (req, res) => {
   res.json({
     ok: true,
@@ -341,17 +341,11 @@ app.get('/api/token-pricing', requireAuth, (req, res) => {
 // ============================================================
 const PAID_STATUSES = ['PAID', 'SETTLED'];
 
-/**
- * Idempoten: tambahkan token SEKALI SAJA.
- * Menggunakan atomic claim di Mongo untuk mencegah race condition
- * antar multiple webhook / instance.
- */
 async function fulfillOrder(order) {
   if (order.credited || !PAID_STATUSES.includes(order.status)) return false;
   const user = usersById.get(order.userId);
   if (!user) return false;
 
-  // Atomic claim jika DB tersedia
   if (ordersCol) {
     try {
       const r = await ordersCol.findOneAndUpdate(
@@ -359,7 +353,7 @@ async function fulfillOrder(order) {
         { $set: { credited: true, status: order.status, updatedAt: new Date() } },
         { returnDocument: 'after' },
       );
-      if (!r) return false; // sudah di-claim proses lain
+      if (!r) return false; 
     } catch (e) {
       console.error('[db] claim order gagal:', e.message);
       return false;
@@ -442,7 +436,6 @@ async function createPaymentTransaction(user, tokenQuantity) {
   return result;
 }
 
-// Webhook Midtrans
 app.post('/api/payment/notification', (req, res) => {
   if (PAYMENT_MODE !== 'midtrans') return res.status(404).end();
   const b = req.body || {};
@@ -456,7 +449,7 @@ app.post('/api/payment/notification', (req, res) => {
   }
 
   const order = orders.get(String(b.order_id));
-  if (!order) return res.json({ ok: true }); // idempoten untuk order tak dikenal
+  if (!order) return res.json({ ok: true }); 
   if (!Number.isFinite(Number(b.gross_amount)) || Number(b.gross_amount) !== order.amount) {
     return res.status(400).json({ error: 'Amount mismatch' });
   }
@@ -464,7 +457,6 @@ app.post('/api/payment/notification', (req, res) => {
   res.json({ ok: true });
 });
 
-// Verifikasi server-to-server
 app.post('/api/payment/verify', requireAuth, async (req, res) => {
   const order = orders.get(String((req.body || {}).orderId || ''));
   if (!order || order.userId !== req.user.id) {
@@ -488,7 +480,6 @@ app.post('/api/payment/verify', requireAuth, async (req, res) => {
   }
 });
 
-// Mock pay (HANYA mode demo)
 app.post('/api/payment/mock-pay', requireAuth, (req, res) => {
   if (PAYMENT_MODE !== 'mock') return res.status(403).json({ error: 'Mode demo tidak aktif.' });
   const order = orders.get(String((req.body || {}).orderId || ''));
@@ -503,8 +494,7 @@ app.post('/api/payment/mock-pay', requireAuth, (req, res) => {
 // ============================================================
 // SESSION / CHARGING
 // ============================================================
-// Lock per booth session untuk mencegah double-charge
-const chargeLocks = new Map(); // boothId -> Promise
+const chargeLocks = new Map();
 
 async function withBoothLock(booth, fn) {
   if (!booth) return fn();
