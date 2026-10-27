@@ -71,8 +71,42 @@ async function auth(kind) {
     show('landing');
   } catch (e) { $('#authMsg').textContent = e.message; }
 }
+// --- LOGIKA PINDAH FORM ---
+$('#btnShowRegister').onclick = () => {
+  $('#formLogin').classList.add('hidden');
+  $('#formRegister').classList.remove('hidden');
+  $('#authMsg').textContent = '';
+};
+$('#btnShowLogin').onclick = () => {
+  $('#formRegister').classList.add('hidden');
+  $('#formLogin').classList.remove('hidden');
+  $('#authMsg').textContent = '';
+};
+
+// --- LOGIKA LOGIN ---
 $('#btnLogin').onclick = () => auth('login');
-$('#btnRegister').onclick = () => auth('register');
+$('#authPass').addEventListener('keydown', (e) => { if (e.key === 'Enter') auth('login'); });
+
+// --- LOGIKA REGISTER BARU ---
+$('#btnRegister').onclick = async () => {
+  $('#authMsg').textContent = '';
+  const u = $('#regUser').value;
+  const p = $('#regPass').value;
+  const c = $('#regConfirm').value;
+  
+  if (p !== c) {
+    $('#authMsg').textContent = 'Password dan Konfirmasi Password tidak cocok!';
+    return;
+  }
+  
+  try {
+    const d = await api('/api/register', 'POST', { username: u, password: p });
+    setUser(d.user);
+    show('landing');
+  } catch (e) {
+    $('#authMsg').textContent = e.message;
+  }
+};
 $('#authPass').addEventListener('keydown', (e) => { if (e.key === 'Enter') auth('login'); });
 $('#btnLogout').onclick = async () => {
   leaveSession(false);

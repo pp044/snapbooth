@@ -21,16 +21,33 @@
 
   <main>
     <!-- AUTH -->
+        <!-- AUTH -->
     <section id="screen-auth" class="screen">
       <div class="card narrow">
         <h1>📸 SnapBooth</h1>
         <p class="muted">Log in or create an account to start. New accounts get 2 free sessions.</p>
-        <input id="authUser" type="text" placeholder="Username" autocomplete="username">
-        <input id="authPass" type="password" placeholder="Password" autocomplete="current-password">
-        <div class="row">
-          <button class="btn primary" id="btnLogin">Log in</button>
-          <button class="btn" id="btnRegister">Create account</button>
+        
+        <!-- FORM LOGIN -->
+        <div id="formLogin">
+          <input id="authUser" type="text" placeholder="Username" autocomplete="username">
+          <input id="authPass" type="password" placeholder="Password" autocomplete="current-password">
+          <div class="row">
+            <button class="btn primary" id="btnLogin">Log in</button>
+            <button class="btn" id="btnShowRegister">Create account</button>
+          </div>
         </div>
+
+        <!-- FORM REGISTER (Tersembunyi awalnya) -->
+        <div id="formRegister" class="hidden">
+          <input id="regUser" type="text" placeholder="Username">
+          <input id="regPass" type="password" placeholder="Password">
+          <input id="regConfirm" type="password" placeholder="Confirm Password">
+          <div class="row">
+            <button class="btn primary" id="btnRegister">Create account</button>
+            <button class="btn ghost" id="btnShowLogin">← Back to Log in</button>
+          </div>
+        </div>
+
         <p class="error" id="authMsg"></p>
       </div>
     </section>
