@@ -1,6 +1,20 @@
 'use strict';
 try { require('dotenv').config(); } catch (e) { /* dotenv opsional */ }
-const express = require('express');
+const express = require("express");
+const path = require("path");
+const PORT = process.env.PORT || 3000;
+
+const publicPath = path.join(__dirname, "public");
+
+app.use(express.static(publicPath));
+
+app.get("/", (req, res) => {
+  res.sendFile(path.join(publicPath, "index.html"));
+});
+
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`Server running on port ${PORT}`);
+});
 const session = require('express-session');
 const http = require('http');
 const path = require('path'); // <-- Cukup dideklarasikan SEKALI di sini
@@ -14,7 +28,6 @@ const MongoStore = require('connect-mongo');
 // KONFIGURASI
 // ============================================================
 const IS_PROD = process.env.NODE_ENV === 'production';
-const PORT = process.env.PORT || 3000;
 const MAX_FREE_SESSIONS = Number(process.env.MAX_FREE_SESSIONS) || 2;
 const MAX_ROOM_SIZE = Number(process.env.MAX_ROOM_SIZE) || 4;
 
@@ -203,7 +216,6 @@ const publicUser = (u) => ({
 });
 
 // ---------- App setup ----------
-const app = express();
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: false } });
 
@@ -926,7 +938,7 @@ setInterval(() => {
 }, 60 * 60 * 1000).unref();
 
 // ============================================================
-// Graceful shutdown
+// Graceful shutdowncon
 // ============================================================
 async function shutdown(sig) {
   console.log(`[shutdown] menerima ${sig}, menutup server...`);
@@ -943,21 +955,7 @@ process.on('SIGTERM', () => shutdown('SIGTERM'));
 // ============================================================
 // Boot
 // ============================================================
-const express = require("express");
-const path = require("path");
 
-
-const publicPath = path.join(__dirname, "public");
-
-app.use(express.static(publicPath));
-
-app.get("/", (req, res) => {
-  res.sendFile(path.join(publicPath, "index.html"));
-});
-
-app.listen(PORT, "0.0.0.0", () => {
-  console.log(`Server running on port ${PORT}`);
-});
 (async () => {
   try {
     await connectDatabase();
