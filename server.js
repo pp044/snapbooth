@@ -236,10 +236,12 @@ app.use(sessionMiddleware);
 io.engine.use(sessionMiddleware);
 
 // Serve static files (INI YANG TADI ERROR KARENA PATH DOUBLE)
+// Cari folder public, jika tidak ada coba cari di public_html
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, '..', '..', 'public_html')));
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
+
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
