@@ -90,7 +90,7 @@ $('#authPass').addEventListener('keydown', (e) => { if (e.key === 'Enter') auth(
 // --- LOGIKA REGISTER BARU ---
 $('#btnRegister').onclick = async () => {
   $('#authMsg').textContent = '';
-  const u = $('#regUser').value;
+  const u = $('#regUser').value;s
   const p = $('#regPass').value;
   const c = $('#regConfirm').value;
   
