@@ -237,7 +237,8 @@ io.engine.use(sessionMiddleware);
 
 // Serve static files 
 // ... kode server.js sebelumnya ...
-
+app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, '..', '..', 'public_html')));
 app.get('/', (req, res) => {
   res.type('html').send(`
     <!DOCTYPE html>
@@ -391,6 +392,9 @@ app.get('/', (req, res) => {
 </body>
 </html>
   `);
+  app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '..', '..', 'public_html', 'index.html'));
+});
 });
 
 
