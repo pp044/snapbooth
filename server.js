@@ -235,15 +235,20 @@ app.use(express.json({ limit: '25mb' }));
 app.use(sessionMiddleware);
 io.engine.use(sessionMiddleware);
 
-// Serve static files (INI YANG TADI ERROR KARENA PATH DOUBLE)
-// Cari folder public, jika tidak ada coba cari di public_html
-app.use(express.static(path.join(__dirname, 'public')));
-app.use(express.static(path.join(__dirname, '..', '..', 'public_html')));
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
+// Serve static files 
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  const pathsToTry = [
+    path.join(__dirname, 'public', 'index.html'),
+    path.join(__dirname, '..', '..', 'public_html', 'index.html'),
+    path.join(process.cwd(), 'public', 'index.html')
+  ];
+
+  for (const p of pathsToTry) {
+    if (fs.existsSync(p)) {
+      return res.sendFile(p);
+    }
+  }
+  res.status(404).send('Halaman tidak ditemukan. Pastikan index.html ada di folder public.');
 });
 
 // ---------- Rate limiter ----------
