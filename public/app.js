@@ -71,6 +71,7 @@ async function auth(kind) {
     show('landing');
   } catch (e) { $('#authMsg').textContent = e.message; }
 }
+
 // --- LOGIKA PINDAH FORM ---
 $('#btnShowRegister').onclick = () => {
   $('#formLogin').classList.add('hidden');
@@ -87,10 +88,10 @@ $('#btnShowLogin').onclick = () => {
 $('#btnLogin').onclick = () => auth('login');
 $('#authPass').addEventListener('keydown', (e) => { if (e.key === 'Enter') auth('login'); });
 
-// --- LOGIKA REGISTER BARU ---
+// --- LOGIKA REGISTER BARU (DIPERBAIKI) ---
 $('#btnRegister').onclick = async () => {
   $('#authMsg').textContent = '';
-  const u = $('#regUser').value;s
+  const u = $('#regUser').value; // <-- Typo 's' sudah dihapus
   const p = $('#regPass').value;
   const c = $('#regConfirm').value;
   
@@ -107,7 +108,7 @@ $('#btnRegister').onclick = async () => {
     $('#authMsg').textContent = e.message;
   }
 };
-$('#authPass').addEventListener('keydown', (e) => { if (e.key === 'Enter') auth('login'); });
+
 $('#btnLogout').onclick = async () => {
   leaveSession(false);
   if (socket) { socket.disconnect(); socket = null; }
@@ -324,7 +325,6 @@ function ensureSocket() {
     socket.once('connect_error', () => { clearTimeout(timer); reject(new Error('Could not connect to server.')); });
   });
 }
-// PERBAIKAN: emitAck dengan timeout agar tidak menggantung.
 const emitAck = (ev, payload, timeoutMs = 10000) => new Promise((resolve, reject) => {
   if (!socket || !socket.connected) return reject(new Error('Not connected.'));
   let done = false;
@@ -404,7 +404,6 @@ async function startCamera() {
       try { await localVideo.play(); } catch (e) { /* autoplay attr */ }
       camDeferred.resolve();
     } catch (e) {
-      // PERBAIKAN: reject deferred agar rtc:signal tidak menggantung
       camDeferred.reject(e);
       throw e;
     }
@@ -595,7 +594,7 @@ function bindSocket(s) {
     try {
       await camDeferred.promise;
     } catch (e) {
-      return; // kamera gagal, abaikan
+      return;
     }
     let p = peers.get(from) || createPeer(from, false);
     try {
@@ -714,7 +713,6 @@ function rng(seed) {
   };
 }
 
-// PERBAIKAN: muat koran.png dari root /public dengan handler onload & flag
 const imgKoran = new Image();
 let imgKoranReady = false;
 imgKoran.onload = () => { imgKoranReady = true; };
@@ -792,16 +790,12 @@ const THEMES = {
       if (imgKoranReady && imgKoran.complete && imgKoran.naturalWidth > 0) {
         ctx.drawImage(imgKoran, 0, 0, W, H);
       } else {
-        // fallback sementara agar tidak putih polos
         ctx.fillStyle = '#e2decb';
         ctx.fillRect(0, 0, W, H);
       }
     },
   },
 };
-
-// PERBAIKAN: cache thumbnail frame agar tidak render ulang setiap goFrames
-const frameThumbCache = new Map(); // key = `${frameId}|${layout}|${imagesHash}`
 
 function renderFrame(canvas, frameId, layout, images) {
   const g = GEOM[layout];
