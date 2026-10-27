@@ -1,23 +1,9 @@
 'use strict';
 try { require('dotenv').config(); } catch (e) { /* dotenv opsional */ }
-const express = require("express");
-const path = require("path");
-const PORT = process.env.PORT || 3000;
-
-const publicPath = path.join(__dirname, "public");
-
-app.use(express.static(publicPath));
-
-app.get("/", (req, res) => {
-  res.sendFile(path.join(publicPath, "index.html"));
-});
-
-app.listen(PORT, "0.0.0.0", () => {
-  console.log(`Server running on port ${PORT}`);
-});
+const express = require('express');
 const session = require('express-session');
 const http = require('http');
-const path = require('path'); // <-- Cukup dideklarasikan SEKALI di sini
+const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
 const { Server } = require('socket.io');
@@ -28,6 +14,7 @@ const MongoStore = require('connect-mongo');
 // KONFIGURASI
 // ============================================================
 const IS_PROD = process.env.NODE_ENV === 'production';
+const PORT = process.env.PORT || 3000;
 const MAX_FREE_SESSIONS = Number(process.env.MAX_FREE_SESSIONS) || 2;
 const MAX_ROOM_SIZE = Number(process.env.MAX_ROOM_SIZE) || 4;
 
@@ -216,6 +203,7 @@ const publicUser = (u) => ({
 });
 
 // ---------- App setup ----------
+const app = express(); // <-- Dideklarasikan SEKALI di sini
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: false } });
 
@@ -247,10 +235,9 @@ app.use(express.json({ limit: '25mb' }));
 app.use(sessionMiddleware);
 io.engine.use(sessionMiddleware);
 
-// Serve static files 
-// ... kode server.js sebelumnya ...
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(path.join(__dirname, '..', '..', 'public_html')));
+
 // --- BACA FILE STATIS DARI PUBLIC_HTML ---
 app.get('/style.css', (req, res) => {
   const p = path.join(__dirname, '..', '..', 'public_html', 'style.css');
@@ -264,6 +251,7 @@ app.get('/app.js', (req, res) => {
   else res.status(404).send('JS tidak ditemukan');
 });
 // -----------------------------------------
+
 app.get('/', (req, res) => {
   res.type('html').send(`
     <!DOCTYPE html>
@@ -287,7 +275,6 @@ app.get('/', (req, res) => {
   </header>
 
   <main>
-    <!-- AUTH -->
     <section id="screen-auth" class="screen">
       <div class="card narrow">
         <h1>📸 SnapBooth</h1>
@@ -302,7 +289,6 @@ app.get('/', (req, res) => {
       </div>
     </section>
 
-    <!-- LANDING -->
     <section id="screen-landing" class="screen">
       <h2>Choose your booth</h2>
       <div id="blocked" class="banner hidden">
@@ -320,11 +306,9 @@ app.get('/', (req, res) => {
           <b>Group Photo</b>
           <small>Shoot together in a shared room</small>
         </button>
-
       </div>
     </section>
 
-    <!-- GROUP ROOM -->
     <section id="screen-group" class="screen">
       <div class="card narrow">
         <h2>Group Photo</h2>
@@ -337,7 +321,6 @@ app.get('/', (req, res) => {
       </div>
     </section>
 
-    <!-- LAYOUT -->
     <section id="screen-layout" class="screen">
       <h2>Choose a layout</h2>
       <div class="grid2">
@@ -351,7 +334,6 @@ app.get('/', (req, res) => {
       <button class="btn ghost" id="btnLayoutBack">← Back</button>
     </section>
 
-    <!-- BOOTH -->
     <section id="screen-booth" class="screen">
       <div class="booth-head">
         <div><b id="boothInfo"></b></div>
@@ -373,7 +355,6 @@ app.get('/', (req, res) => {
       <button class="btn primary big" id="btnStart">Start</button>
     </section>
 
-    <!-- FRAMES -->
     <section id="screen-frames" class="screen">
       <h2>Pick a frame</h2>
       <div class="frames-wrap">
@@ -395,7 +376,6 @@ app.get('/', (req, res) => {
     </section>
   </main>
 
-  <!-- BUY MODAL -->
   <div id="modal" class="modal hidden">
     <div class="card narrow buy-card">
       <h2>Beli Token</h2>
@@ -414,17 +394,14 @@ app.get('/', (req, res) => {
  
   <script src="/socket.io/socket.io.js"></script>
   <script src="app.js"></script>
-  <link rel="stylesheet" href="/css/style.css">
-<script src="/js/app.js"></script>
 </body>
 </html>
   `);
-  app.get('*', (req, res) => {
+});
+
+app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '..', '..', 'public_html', 'index.html'));
 });
-});
-
-
 
 // ---------- Rate limiter ----------
 const rateBuckets = new Map();
@@ -500,7 +477,6 @@ app.post('/api/logout', (req, res) => req.session.destroy(() => res.json({ ok: t
 app.get('/api/me', requireAuth, (req, res) => res.json({ user: publicUser(req.user) }));
 app.get('/api/frames', requireAuth, (req, res) => res.json({ frames: FRAMES }));
 
-// ---------- Health check ----------
 app.get('/api/health', (req, res) => {
   res.json({
     ok: true,
@@ -510,7 +486,6 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// ---------- Token pricing ----------
 app.get('/api/token-pricing', requireAuth, (req, res) => {
   res.json({
     basePrice: BASE_TOKEN_PRICE,
@@ -938,7 +913,7 @@ setInterval(() => {
 }, 60 * 60 * 1000).unref();
 
 // ============================================================
-// Graceful shutdowncon
+// Graceful shutdown
 // ============================================================
 async function shutdown(sig) {
   console.log(`[shutdown] menerima ${sig}, menutup server...`);
@@ -955,7 +930,6 @@ process.on('SIGTERM', () => shutdown('SIGTERM'));
 // ============================================================
 // Boot
 // ============================================================
-
 (async () => {
   try {
     await connectDatabase();
@@ -967,4 +941,3 @@ process.on('SIGTERM', () => shutdown('SIGTERM'));
     console.log(`SnapBooth running at http://localhost:${PORT} (mode=${PAYMENT_MODE})`);
   });
 })();
-
