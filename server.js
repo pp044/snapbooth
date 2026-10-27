@@ -263,10 +263,6 @@ app.get('/', (req, res) => {
   `);
 });
 
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '..', '..', 'public_html', 'index.html'));
-});
-
 // ---------- Rate limiter ----------
 const rateBuckets = new Map();
 function rateLimit(key, max, windowMs) {
