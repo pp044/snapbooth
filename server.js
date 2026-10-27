@@ -235,10 +235,11 @@ const sessionMiddleware = session({
 app.use(express.json({ limit: '25mb' }));
 app.use(sessionMiddleware);
 io.engine.use(sessionMiddleware);
-app.use(express.static(path.join(__dirname, 'public'), {
-  maxAge: IS_PROD ? '7d' : 0,
-  etag: true,
-}));
+const path = require('path'); 
+app.use(express.static(path.join(__dirname, 'public')));
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
 
 // ---------- Rate limiter (sederhana, in-memory) ----------
 const rateBuckets = new Map(); // key -> { count, resetAt }
