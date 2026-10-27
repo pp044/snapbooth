@@ -685,7 +685,7 @@ const imgKoran = new Image();
 let imgKoranReady = false;
 imgKoran.onload = () => { imgKoranReady = true; };
 imgKoran.onerror = () => { console.warn('[frame] koran.png tidak ditemukan'); };
-imgKoran.src = 'koran.png'; // relative to /public/app.js -> /koran.png
+imgKoran.src = '/koran.png';
 
 const THEMES = {
   classic: {
