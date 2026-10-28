@@ -168,12 +168,23 @@ a{color:var(--accent)}
 @media(max-width:760px){.frames-wrap{grid-template-columns:1fr}.frame-list{grid-template-columns:repeat(4,1fr)}}
 @media(max-width:520px){.frame-list{grid-template-columns:repeat(2,1fr)}}
 
-/* Memperbaiki jarak form registrasi */
-#formRegister input {
-  margin-bottom: 12px;
+/* --- PERBAIKAN JARAK FORM LOGIN & REGISTER --- */
+#formLogin, #formRegister {
+  display: flex;
+  flex-direction: column;
+  gap: 12px; /* Memberikan jarak antar input secara otomatis */
+  margin-top: 20px;
 }
 
-#formRegister .row {
-  margin-top: 10px;
+#formLogin .row, #formRegister .row {
+  display: flex;
   gap: 10px;
+  margin-top: 10px;
+  justify-content: center;
+}
+
+#formLogin input, #formRegister input {
+  width: 100%;
+  box-sizing: border-box;
+  margin-bottom: 0; /* Menghapus margin lama agar tidak dobel */
 }
